@@ -45,19 +45,46 @@
     .respondido { background: #28a745; }
 
     /* BOTÕES */
-    button {
-      margin-right: 10px;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
+    .filtros {
+  margin-top: 10px;
+}
 
-    button:hover {
-      opacity: 0.9;
-    }
+.filtros button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+/* CORES */
+.btn-todos {
+  background: #007bff;
+}
+
+.btn-pendente {
+  background: #dc3545;
+}
+
+.btn-respondido {
+  background: #28a745;
+}
+
+/* HOVER */
+.filtros button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* ATIVO */
+.ativo {
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
+  transform: scale(1.05);
+}
 
     /* TABELA */
     table {
