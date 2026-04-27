@@ -4,44 +4,85 @@
   <title>Controle de Entregas</title>
 
   <style>
-    body { font-family: Arial; padding: 20px; }
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
 
-    h2 { margin-bottom: 10px; }
+    .container {
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
 
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    /* CARDS */
+    .cards {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .card {
+      flex: 1;
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .total { background: #007bff; }
+    .pendente { background: #dc3545; }
+    .respondido { background: #28a745; }
+
+    /* BOTÕES */
     button {
       margin-right: 10px;
-      padding: 6px 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
       cursor: pointer;
     }
 
-    #resumo {
-      margin-top: 15px;
-      background: #eee;
-      padding: 10px;
-      border-radius: 5px;
-      font-weight: bold;
+    button:hover {
+      opacity: 0.9;
     }
 
+    /* TABELA */
     table {
       border-collapse: collapse;
       width: 100%;
       font-size: 13px;
       margin-top: 15px;
+      background: white;
     }
 
-    th, td {
-      border: 1px solid #ccc;
+    th {
+      background: #007bff;
+      color: white;
+      padding: 8px;
+    }
+
+    td {
+      border: 1px solid #ddd;
       padding: 6px;
       text-align: center;
     }
 
     select, input {
       width: 100%;
-      font-size: 12px;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+      padding: 4px;
     }
 
     .verde {
@@ -51,20 +92,27 @@
     .vermelho {
       background-color: #f8d7da !important;
     }
+
   </style>
 </head>
 
 <body>
 
-<h2>Controle de NFs - Transportadora</h2>
+<div class="container">
 
-<!-- FILTROS -->
+<h2>🚚 Controle de NFs</h2>
+
+<!-- BOTÕES -->
 <button onclick="filtrar('TODOS')">Todos</button>
 <button onclick="filtrar('PENDENTE')">Pendentes</button>
 <button onclick="filtrar('RESPONDIDO')">Respondidos</button>
 
-<!-- RESUMO -->
-<h3 id="resumo">Carregando...</h3>
+<!-- CARDS -->
+<div class="cards">
+  <div class="card total" id="totalCard">Total: 0</div>
+  <div class="card pendente" id="pendenteCard">Pendentes: 0</div>
+  <div class="card respondido" id="respondidoCard">Respondidos: 0</div>
+</div>
 
 <table id="tabela">
   <thead>
@@ -80,7 +128,7 @@
       <th>Status</th>
       <th>Agendado</th>
       <th>Em rota</th>
-      <th>Status Resp</th>
+      <th>Status</th>
       <th>Atraso?</th>
       <th>Motivo</th>
       <th>Data Resp</th>
@@ -90,32 +138,24 @@
   <tbody></tbody>
 </table>
 
+</div>
+
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwI4rXeSdViPoPqPgrQqDfBt5dbFmfo1oCeP3VPv-K0b7WelVm0xpDcfIl3yNguK5OL/exec";
-
 let filtroAtual = "TODOS";
 
-// formatar datas
 function formatarData(data) {
   if (!data || isNaN(new Date(data))) return data;
-
   const d = new Date(data);
-
-  const dia = String(d.getUTCDate()).padStart(2, '0');
-  const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const ano = d.getUTCFullYear();
-
-  return `${dia}/${mes}/${ano}`;
+  return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
 }
 
-// filtro
 function filtrar(tipo) {
   filtroAtual = tipo;
   carregarDados();
 }
 
-// carregar dados
 async function carregarDados() {
   const res = await fetch(API_URL);
   const dados = await res.json();
@@ -123,9 +163,7 @@ async function carregarDados() {
   const tbody = document.querySelector("#tabela tbody");
   tbody.innerHTML = "";
 
-  let total = 0;
-  let pendentes = 0;
-  let respondidos = 0;
+  let total = 0, pendentes = 0, respondidos = 0;
 
   dados.slice(1).forEach(linha => {
 
@@ -133,24 +171,17 @@ async function carregarDados() {
     const motivoAtual = linha[12] || "";
     const dataResposta = linha[13] || "";
 
-    const respondido = atrasoAtual ? "RESPONDIDO" : "PENDENTE";
+    const status = atrasoAtual ? "RESPONDIDO" : "PENDENTE";
 
-    // CONTAGEM
     total++;
-    if (respondido === "RESPONDIDO") {
-      respondidos++;
-    } else {
-      pendentes++;
-    }
+    if (status === "RESPONDIDO") respondidos++;
+    else pendentes++;
 
-    // FILTRO
-    if (filtroAtual === "PENDENTE" && respondido !== "PENDENTE") return;
-    if (filtroAtual === "RESPONDIDO" && respondido !== "RESPONDIDO") return;
-
-    const classe = respondido === "RESPONDIDO" ? "verde" : "vermelho";
+    if (filtroAtual === "PENDENTE" && status !== "PENDENTE") return;
+    if (filtroAtual === "RESPONDIDO" && status !== "RESPONDIDO") return;
 
     const tr = document.createElement("tr");
-    tr.className = classe;
+    tr.className = status === "RESPONDIDO" ? "verde" : "vermelho";
 
     tr.innerHTML = `
       <td>${linha[0]}</td>
@@ -164,8 +195,7 @@ async function carregarDados() {
       <td>${linha[8]}</td>
       <td>${linha[9]}</td>
       <td>${formatarData(linha[10])}</td>
-
-      <td>${respondido === "RESPONDIDO" ? "✔ Respondido" : "⏳ Pendente"}</td>
+      <td>${status}</td>
 
       <td>
         <select>
@@ -175,26 +205,22 @@ async function carregarDados() {
         </select>
       </td>
 
-      <td>
-        <input type="text" value="${motivoAtual}" placeholder="Motivo">
-      </td>
+      <td><input value="${motivoAtual}" /></td>
 
       <td>${formatarData(dataResposta)}</td>
 
-      <td>
-        <button onclick="salvar(this)">Salvar</button>
-      </td>
+      <td><button onclick="salvar(this)">Salvar</button></td>
     `;
 
     tbody.appendChild(tr);
   });
 
-  // ATUALIZA RESUMO
-  document.getElementById("resumo").innerText =
-    `Total: ${total} | Pendentes: ${pendentes} | Respondidos: ${respondidos}`;
+  // atualizar cards
+  document.getElementById("totalCard").innerText = `Total: ${total}`;
+  document.getElementById("pendenteCard").innerText = `Pendentes: ${pendentes}`;
+  document.getElementById("respondidoCard").innerText = `Respondidos: ${respondidos}`;
 }
 
-// salvar
 async function salvar(btn) {
   const tr = btn.parentElement.parentElement;
   const tds = tr.querySelectorAll("td");
@@ -203,25 +229,15 @@ async function salvar(btn) {
   const atraso = tds[12].querySelector("select").value;
   const motivo = tds[13].querySelector("input").value;
 
-  if (!atraso) {
-    alert("Selecione SIM ou NÃO");
-    return;
-  }
-
   await fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({
-      nf,
-      atraso,
-      motivo
-    })
+    body: JSON.stringify({ nf, atraso, motivo })
   });
 
-  alert("Atualizado com sucesso!");
+  alert("Atualizado!");
   carregarDados();
 }
 
-// iniciar
 carregarDados();
 
 </script>
