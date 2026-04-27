@@ -4,13 +4,36 @@
   <title>Controle de Entregas</title>
   <style>
     body { font-family: Arial; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; font-size: 14px; }
-    input, select { width: 100%; }
-    button { padding: 5px 10px; cursor: pointer; }
     h2 { margin-bottom: 20px; }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+
+    select, input {
+      width: 100%;
+      font-size: 12px;
+    }
+
+    button {
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
   </style>
 </head>
+
 <body>
 
 <h2>Controle de NFs - Transportadora</h2>
@@ -20,10 +43,16 @@
     <tr>
       <th>Pedido</th>
       <th>NF</th>
-      <th>Transportadora</th>
+      <th>Transp</th>
       <th>Cidade</th>
+      <th>Coleta</th>
+      <th>Previsão</th>
+      <th>UF</th>
+      <th>Atraso dias</th>
       <th>Status</th>
-      <th>Atraso</th>
+      <th>Agendado</th>
+      <th>Em rota</th>
+      <th>Atraso?</th>
       <th>Motivo</th>
       <th>Ação</th>
     </tr>
@@ -32,9 +61,10 @@
 </table>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwEmWMMQAd-Sm4dlu1gFzkp-TThPSNCDkIepdLm4MM8OGeK5MXeCzZe6Mf_Wec9LE6o/exec";
 
-// carregar dados
+const API_URL = "SUA_URL_AQUI";
+
+// 🔄 Carregar dados da planilha
 async function carregarDados() {
   const res = await fetch(API_URL);
   const dados = await res.json();
@@ -44,17 +74,23 @@ async function carregarDados() {
 
   dados.slice(1).forEach(linha => {
 
-    const tr = document.createElement("tr");
+    const atrasoAtual = linha[11] || ""; // coluna L
+    const motivoAtual = linha[12] || ""; // coluna M
 
-    const atrasoAtual = linha[11] || "";
-    const motivoAtual = linha[12] || "";
+    const tr = document.createElement("tr");
 
     tr.innerHTML = `
       <td>${linha[0]}</td>
       <td>${linha[1]}</td>
       <td>${linha[2]}</td>
       <td>${linha[3]}</td>
+      <td>${linha[4]}</td>
+      <td>${linha[5]}</td>
+      <td>${linha[6]}</td>
+      <td>${linha[7]}</td>
       <td>${linha[8]}</td>
+      <td>${linha[9]}</td>
+      <td>${linha[10]}</td>
 
       <td>
         <select>
@@ -77,17 +113,17 @@ async function carregarDados() {
   });
 }
 
-// salvar alteração
+// 💾 Salvar atualização (colunas L e M)
 async function salvar(btn) {
   const tr = btn.parentElement.parentElement;
   const tds = tr.querySelectorAll("td");
 
   const nf = tds[1].innerText;
-  const atraso = tds[5].querySelector("select").value;
-  const motivo = tds[6].querySelector("input").value;
+  const atraso = tds[11].querySelector("select").value;
+  const motivo = tds[12].querySelector("input").value;
 
   if (!atraso) {
-    alert("Selecione SIM ou NÃO para atraso");
+    alert("Selecione SIM ou NÃO");
     return;
   }
 
@@ -103,7 +139,9 @@ async function salvar(btn) {
   alert("Atualizado com sucesso!");
 }
 
+// 🚀 Iniciar
 carregarDados();
+
 </script>
 
 </body>
