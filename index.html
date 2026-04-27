@@ -2,14 +2,23 @@
 <html>
 <head>
   <title>Controle de Entregas</title>
+
   <style>
     body { font-family: Arial; padding: 20px; }
-    h2 { margin-bottom: 20px; }
+
+    h2 { margin-bottom: 15px; }
+
+    button {
+      margin-right: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
 
     table {
       border-collapse: collapse;
       width: 100%;
       font-size: 13px;
+      margin-top: 15px;
     }
 
     th, td {
@@ -23,13 +32,16 @@
       font-size: 12px;
     }
 
-    button {
-      padding: 5px;
-      cursor: pointer;
-    }
-
     tr:nth-child(even) {
       background-color: #f9f9f9;
+    }
+
+    .verde {
+      background-color: #d4edda !important;
+    }
+
+    .vermelho {
+      background-color: #f8d7da !important;
     }
   </style>
 </head>
@@ -37,6 +49,11 @@
 <body>
 
 <h2>Controle de NFs - Transportadora</h2>
+
+<!-- FILTROS -->
+<button onclick="filtrar('TODOS')">Todos</button>
+<button onclick="filtrar('PENDENTE')">Pendentes</button>
+<button onclick="filtrar('RESPONDIDO')">Respondidos</button>
 
 <table id="tabela">
   <thead>
@@ -66,7 +83,9 @@
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwI4rXeSdViPoPqPgrQqDfBt5dbFmfo1oCeP3VPv-K0b7WelVm0xpDcfIl3yNguK5OL/exec";
 
-// formatar data padrão BR
+let filtroAtual = "TODOS";
+
+// formatar data BR
 function formatarData(data) {
   if (!data) return "";
 
@@ -78,6 +97,13 @@ function formatarData(data) {
 
   return `${dia}/${mes}/${ano}`;
 }
+
+// filtro
+function filtrar(tipo) {
+  filtroAtual = tipo;
+  carregarDados();
+}
+
 // carregar dados
 async function carregarDados() {
   const res = await fetch(API_URL);
@@ -92,9 +118,16 @@ async function carregarDados() {
     const motivoAtual = linha[12] || "";
     const dataResposta = linha[13] || "";
 
-    const respondido = atrasoAtual ? "✔ Respondido" : "⏳ Pendente";
+    const respondido = atrasoAtual ? "RESPONDIDO" : "PENDENTE";
+
+    // aplicar filtro
+    if (filtroAtual === "PENDENTE" && respondido !== "PENDENTE") return;
+    if (filtroAtual === "RESPONDIDO" && respondido !== "RESPONDIDO") return;
+
+    const classe = respondido === "RESPONDIDO" ? "verde" : "vermelho";
 
     const tr = document.createElement("tr");
+    tr.className = classe;
 
     tr.innerHTML = `
       <td>${linha[0]}</td>
@@ -109,7 +142,7 @@ async function carregarDados() {
       <td>${linha[9]}</td>
       <td>${linha[10]}</td>
 
-      <td>${respondido}</td>
+      <td>${respondido === "RESPONDIDO" ? "✔ Respondido" : "⏳ Pendente"}</td>
 
       <td>
         <select>
@@ -123,7 +156,7 @@ async function carregarDados() {
         <input type="text" value="${motivoAtual}" placeholder="Motivo">
       </td>
 
-      <td>${formatarData(dataResposta)}</td>
+      <td>${dataResposta}</td>
 
       <td>
         <button onclick="salvar(this)">Salvar</button>
@@ -158,7 +191,7 @@ async function salvar(btn) {
   });
 
   alert("Atualizado com sucesso!");
-  carregarDados(); // atualiza tabela após salvar
+  carregarDados();
 }
 
 // iniciar
