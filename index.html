@@ -130,9 +130,11 @@
 <h2>🚚 Entregas Pendentes</h2>
 
 <!-- BOTÕES -->
-<button onclick="filtrar('TODOS')">Todos</button>
-<button onclick="filtrar('PENDENTE')">Pendentes</button>
-<button onclick="filtrar('RESPONDIDO')">Respondidos</button>
+<div class="filtros">
+  <button class="btn-todos ativo" onclick="filtrar('TODOS', this)">Todos</button>
+  <button class="btn-pendente" onclick="filtrar('PENDENTE', this)">Pendentes</button>
+  <button class="btn-respondido" onclick="filtrar('RESPONDIDO', this)">Respondidos</button>
+</div>
 
 <!-- CARDS -->
 <div class="cards">
