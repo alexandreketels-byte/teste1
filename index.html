@@ -5,20 +5,23 @@
   <style>
     body { font-family: Arial; padding: 20px; }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
+    th, td { border: 1px solid #ccc; padding: 8px; font-size: 14px; }
     input, select { width: 100%; }
-    button { padding: 5px 10px; }
+    button { padding: 5px 10px; cursor: pointer; }
+    h2 { margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-<h2>Controle de NFs</h2>
+<h2>Controle de NFs - Transportadora</h2>
 
 <table id="tabela">
   <thead>
     <tr>
+      <th>Pedido</th>
       <th>NF</th>
       <th>Transportadora</th>
+      <th>Cidade</th>
       <th>Status</th>
       <th>Atraso</th>
       <th>Motivo</th>
@@ -29,7 +32,7 @@
 </table>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwI4rXeSdViPoPqPgrQqDfBt5dbFmfo1oCeP3VPv-K0b7WelVm0xpDcfIl3yNguK5OL/exec";
+const API_URL = "SUA_URL_AQUI";
 
 // carregar dados
 async function carregarDados() {
@@ -40,21 +43,34 @@ async function carregarDados() {
   tbody.innerHTML = "";
 
   dados.slice(1).forEach(linha => {
+
     const tr = document.createElement("tr");
+
+    const atrasoAtual = linha[11] || "";
+    const motivoAtual = linha[12] || "";
 
     tr.innerHTML = `
       <td>${linha[0]}</td>
       <td>${linha[1]}</td>
-      <td>${linha[2] || ""}</td>
+      <td>${linha[2]}</td>
+      <td>${linha[3]}</td>
+      <td>${linha[8]}</td>
+
       <td>
         <select>
           <option value="">-</option>
-          <option value="SIM">SIM</option>
-          <option value="NAO">NÃO</option>
+          <option value="SIM" ${atrasoAtual === "SIM" ? "selected" : ""}>SIM</option>
+          <option value="NAO" ${atrasoAtual === "NAO" ? "selected" : ""}>NÃO</option>
         </select>
       </td>
-      <td><input type="text" placeholder="Motivo"></td>
-      <td><button onclick="salvar(this)">Salvar</button></td>
+
+      <td>
+        <input type="text" value="${motivoAtual}" placeholder="Motivo">
+      </td>
+
+      <td>
+        <button onclick="salvar(this)">Salvar</button>
+      </td>
     `;
 
     tbody.appendChild(tr);
@@ -66,23 +82,25 @@ async function salvar(btn) {
   const tr = btn.parentElement.parentElement;
   const tds = tr.querySelectorAll("td");
 
-  const nf = tds[0].innerText;
-  const transportadora = tds[1].innerText;
-  const atraso = tds[3].querySelector("select").value;
-  const motivo = tds[4].querySelector("input").value;
+  const nf = tds[1].innerText;
+  const atraso = tds[5].querySelector("select").value;
+  const motivo = tds[6].querySelector("input").value;
+
+  if (!atraso) {
+    alert("Selecione SIM ou NÃO para atraso");
+    return;
+  }
 
   await fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({
       nf,
-      transportadora,
-      status: "Atualizado",
       atraso,
       motivo
     })
   });
 
-  alert("Salvo com sucesso!");
+  alert("Atualizado com sucesso!");
 }
 
 carregarDados();
