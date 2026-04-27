@@ -180,8 +180,17 @@ function formatarData(data) {
   return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
 }
 
-function filtrar(tipo) {
+function filtrar(tipo, btn) {
   filtroAtual = tipo;
+
+  // remove destaque de todos
+  document.querySelectorAll(".filtros button").forEach(b => {
+    b.classList.remove("ativo");
+  });
+
+  // adiciona no clicado
+  btn.classList.add("ativo");
+
   carregarDados();
 }
 
