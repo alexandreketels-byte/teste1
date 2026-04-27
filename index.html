@@ -6,12 +6,20 @@
   <style>
     body { font-family: Arial; padding: 20px; }
 
-    h2 { margin-bottom: 15px; }
+    h2 { margin-bottom: 10px; }
 
     button {
       margin-right: 10px;
       padding: 6px 10px;
       cursor: pointer;
+    }
+
+    #resumo {
+      margin-top: 15px;
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
     }
 
     table {
@@ -55,6 +63,9 @@
 <button onclick="filtrar('PENDENTE')">Pendentes</button>
 <button onclick="filtrar('RESPONDIDO')">Respondidos</button>
 
+<!-- RESUMO -->
+<h3 id="resumo">Carregando...</h3>
+
 <table id="tabela">
   <thead>
     <tr>
@@ -85,9 +96,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwI4rXeSdViPoPqPgrQqDfB
 
 let filtroAtual = "TODOS";
 
-// formatar data BR
+// formatar datas
 function formatarData(data) {
-  if (!data) return "";
+  if (!data || isNaN(new Date(data))) return data;
 
   const d = new Date(data);
 
@@ -112,6 +123,10 @@ async function carregarDados() {
   const tbody = document.querySelector("#tabela tbody");
   tbody.innerHTML = "";
 
+  let total = 0;
+  let pendentes = 0;
+  let respondidos = 0;
+
   dados.slice(1).forEach(linha => {
 
     const atrasoAtual = linha[11] || "";
@@ -120,7 +135,15 @@ async function carregarDados() {
 
     const respondido = atrasoAtual ? "RESPONDIDO" : "PENDENTE";
 
-    // aplicar filtro
+    // CONTAGEM
+    total++;
+    if (respondido === "RESPONDIDO") {
+      respondidos++;
+    } else {
+      pendentes++;
+    }
+
+    // FILTRO
     if (filtroAtual === "PENDENTE" && respondido !== "PENDENTE") return;
     if (filtroAtual === "RESPONDIDO" && respondido !== "RESPONDIDO") return;
 
@@ -140,7 +163,7 @@ async function carregarDados() {
       <td>${linha[7]}</td>
       <td>${linha[8]}</td>
       <td>${linha[9]}</td>
-     <td>${formatarData(linha[10])}</td>
+      <td>${formatarData(linha[10])}</td>
 
       <td>${respondido === "RESPONDIDO" ? "✔ Respondido" : "⏳ Pendente"}</td>
 
@@ -165,6 +188,10 @@ async function carregarDados() {
 
     tbody.appendChild(tr);
   });
+
+  // ATUALIZA RESUMO
+  document.getElementById("resumo").innerText =
+    `Total: ${total} | Pendentes: ${pendentes} | Respondidos: ${respondidos}`;
 }
 
 // salvar
