@@ -9,7 +9,6 @@
       padding: 20px;
       background: url('https://stockcake.com/pt/i/warehouse-night-shift_1293991_740496') no-repeat center center fixed;
       background-size: cover;
-      color: #333;
     }
 
     .container {
@@ -21,6 +20,30 @@
 
     h2 {
       margin-bottom: 10px;
+    }
+
+    /* BOTÕES */
+    .filtros button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: 0.2s;
+    }
+
+    .btn-todos { background: #007bff; }
+    .btn-pendente { background: #dc3545; }
+    .btn-respondido { background: #28a745; }
+
+    .filtros button:hover {
+      transform: scale(1.05);
+    }
+
+    .ativo {
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
     }
 
     /* CARDS */
@@ -35,8 +58,8 @@
       padding: 15px;
       border-radius: 10px;
       color: white;
-      font-weight: bold;
       text-align: center;
+      font-weight: bold;
       font-size: 18px;
     }
 
@@ -44,80 +67,55 @@
     .pendente { background: #dc3545; }
     .respondido { background: #28a745; }
 
-    /* BOTÕES */
-    .filtros {
-  margin-top: 10px;
-}
-
-.filtros button {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  margin-right: 10px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-/* CORES */
-.btn-todos {
-  background: #007bff;
-}
-
-.btn-pendente {
-  background: #dc3545;
-}
-
-.btn-respondido {
-  background: #28a745;
-}
-
-/* HOVER */
-.filtros button:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-}
-
-/* ATIVO */
-.ativo {
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
-  transform: scale(1.05);
-}
-
     /* TABELA */
     table {
       border-collapse: collapse;
       width: 100%;
-      font-size: 13px;
       margin-top: 15px;
       background: white;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     th {
       background: #007bff;
       color: white;
-      padding: 8px;
+      padding: 10px;
     }
 
     td {
-      border: 1px solid #ddd;
-      padding: 6px;
+      padding: 8px;
+      border-bottom: 1px solid #e0e0e0;
       text-align: center;
+    }
+
+    td + td {
+      border-left: 1px solid #f0f0f0;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover {
+      background-color: #e9f3ff;
+    }
+
+    /* STATUS */
+    .status-respondido {
+      background: #28a745;
+      color: white;
+      font-weight: bold;
+    }
+
+    .status-pendente {
+      background: #dc3545;
+      color: white;
+      font-weight: bold;
     }
 
     select, input {
       width: 100%;
-      padding: 4px;
-    }
-
-    .verde {
-      background-color: #d4edda !important;
-    }
-
-    .vermelho {
-      background-color: #f8d7da !important;
     }
 
   </style>
@@ -129,14 +127,12 @@
 
 <h2>🚚 Entregas Pendentes</h2>
 
-<!-- BOTÕES -->
 <div class="filtros">
   <button class="btn-todos ativo" onclick="filtrar('TODOS', this)">Todos</button>
   <button class="btn-pendente" onclick="filtrar('PENDENTE', this)">Pendentes</button>
   <button class="btn-respondido" onclick="filtrar('RESPONDIDO', this)">Respondidos</button>
 </div>
 
-<!-- CARDS -->
 <div class="cards">
   <div class="card total" id="totalCard">Total: 0</div>
   <div class="card pendente" id="pendenteCard">Pendentes: 0</div>
@@ -157,7 +153,7 @@
       <th>Status</th>
       <th>Agendado</th>
       <th>Em rota</th>
-      <th>Status</th>
+      <th>Status Resp</th>
       <th>Atraso?</th>
       <th>Motivo</th>
       <th>Data Resp</th>
@@ -171,7 +167,7 @@
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwI4rXeSdViPoPqPgrQqDfBt5dbFmfo1oCeP3VPv-K0b7WelVm0xpDcfIl3yNguK5OL/exec";
+const API_URL = "SUA_URL_AQUI";
 let filtroAtual = "TODOS";
 
 function formatarData(data) {
@@ -183,12 +179,7 @@ function formatarData(data) {
 function filtrar(tipo, btn) {
   filtroAtual = tipo;
 
-  // remove destaque de todos
-  document.querySelectorAll(".filtros button").forEach(b => {
-    b.classList.remove("ativo");
-  });
-
-  // adiciona no clicado
+  document.querySelectorAll(".filtros button").forEach(b => b.classList.remove("ativo"));
   btn.classList.add("ativo");
 
   carregarDados();
@@ -219,7 +210,6 @@ async function carregarDados() {
     if (filtroAtual === "RESPONDIDO" && status !== "RESPONDIDO") return;
 
     const tr = document.createElement("tr");
-    tr.className = status === "RESPONDIDO" ? "verde" : "vermelho";
 
     tr.innerHTML = `
       <td>${linha[0]}</td>
@@ -233,7 +223,10 @@ async function carregarDados() {
       <td>${linha[8]}</td>
       <td>${linha[9]}</td>
       <td>${formatarData(linha[10])}</td>
-      <td>${status}</td>
+
+      <td class="${status === 'RESPONDIDO' ? 'status-respondido' : 'status-pendente'}">
+        ${status}
+      </td>
 
       <td>
         <select>
@@ -253,7 +246,6 @@ async function carregarDados() {
     tbody.appendChild(tr);
   });
 
-  // atualizar cards
   document.getElementById("totalCard").innerText = `Total: ${total}`;
   document.getElementById("pendenteCard").innerText = `Pendentes: ${pendentes}`;
   document.getElementById("respondidoCard").innerText = `Respondidos: ${respondidos}`;
@@ -266,6 +258,11 @@ async function salvar(btn) {
   const nf = tds[1].innerText;
   const atraso = tds[12].querySelector("select").value;
   const motivo = tds[13].querySelector("input").value;
+
+  if (!atraso) {
+    alert("Selecione SIM ou NÃO");
+    return;
+  }
 
   await fetch(API_URL, {
     method: "POST",
