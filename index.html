@@ -12,37 +12,40 @@
     }
 
     .container {
-      background: rgba(255,255,255,0.92);
+      background: rgba(255,255,255,0.95);
       padding: 20px;
       border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
     }
 
     .filtros button {
-      padding: 10px;
-      margin-right: 10px;
+      padding: 10px 16px;
       border: none;
       border-radius: 8px;
       color: white;
-      cursor: pointer;
       font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
     }
 
     .btn-todos { background: #007bff; }
     .btn-pendente { background: #dc3545; }
     .btn-respondido { background: #28a745; }
 
-    .ativo { box-shadow: 0 0 0 3px rgba(0,0,0,0.2); }
+    .ativo {
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
+    }
 
     .cards {
       display: flex;
-      gap: 10px;
+      gap: 15px;
       margin: 15px 0;
     }
 
     .card {
       flex: 1;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 15px;
+      border-radius: 10px;
       color: white;
       text-align: center;
       font-weight: bold;
@@ -53,8 +56,9 @@
     .respondido { background: #28a745; }
 
     table {
-      width: 100%;
       border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
       background: white;
     }
 
@@ -70,36 +74,41 @@
       text-align: center;
     }
 
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
     tr:hover {
-      background: #eef6ff;
+      background: #e9f3ff;
     }
 
     .status-respondido {
       background: #28a745;
       color: white;
+      font-weight: bold;
     }
 
     .status-pendente {
       background: #dc3545;
       color: white;
+      font-weight: bold;
     }
 
-    button {
-      cursor: pointer;
-      transition: 0.2s;
+    select, input {
+      width: 100%;
     }
 
-    button:hover {
-      transform: scale(1.05);
+    .acoes {
+      margin-top: 10px;
     }
 
     .btn-lote {
-      background: orange;
+      background: #ff9800;
       color: white;
       padding: 10px;
-      border-radius: 6px;
       border: none;
-      margin-bottom: 10px;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
   </style>
@@ -109,7 +118,7 @@
 
 <div class="container">
 
-<h2>🚚 Controle de Entregas</h2>
+<h2>🚚 Entregas Pendentes</h2>
 
 <div class="filtros">
   <button class="btn-todos ativo" onclick="filtrar('TODOS', this)">Todos</button>
@@ -123,31 +132,33 @@
   <div class="card respondido" id="respondidoCard">Respondidos: 0</div>
 </div>
 
-<button class="btn-lote" onclick="salvarSelecionados()" id="btnLote">💾 Salvar Selecionados</button>
+<div class="acoes">
+  <button class="btn-lote" onclick="salvarSelecionados()">💾 Salvar Selecionados</button>
+</div>
 
 <table id="tabela">
-<thead>
-<tr>
-<th><input type="checkbox" onclick="selecionarTodos(this)"></th>
-<th>Pedido</th>
-<th>NF</th>
-<th>Transp</th>
-<th>Cidade</th>
-<th>Coleta</th>
-<th>Previsão</th>
-<th>UF</th>
-<th>Atraso dias</th>
-<th>Status</th>
-<th>Agendado</th>
-<th>Em rota</th>
-<th>Status Resp</th>
-<th>Atraso?</th>
-<th>Motivo</th>
-<th>Data Resp</th>
-<th>Ação</th>
-</tr>
-</thead>
-<tbody></tbody>
+  <thead>
+    <tr>
+      <th><input type="checkbox" onclick="selecionarTodos(this)"></th>
+      <th>Pedido</th>
+      <th>NF</th>
+      <th>Transp</th>
+      <th>Cidade</th>
+      <th>Coleta</th>
+      <th>Previsão</th>
+      <th>UF</th>
+      <th>Atraso dias</th>
+      <th>Status</th>
+      <th>Agendado</th>
+      <th>Em rota</th>
+      <th>Status Resp</th>
+      <th>Atraso?</th>
+      <th>Motivo</th>
+      <th>Data Resp</th>
+      <th>Ação</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
 </table>
 
 </div>
@@ -155,23 +166,6 @@
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwI4rXeSdViPoPqPgrQqDfBt5dbFmfo1oCeP3VPv-K0b7WelVm0xpDcfIl3yNguK5OL/exec";
-
-const params = new URLSearchParams(window.location.search);
-const modo = params.get("modo") || "view";
-
-if (modo === "edit") {
-  const senha = prompt("gfw123");
-  if (senha !== "1234") {
-    document.body.innerHTML = "Acesso negado";
-  }
-}
-
-if (modo === "view") {
-  window.onload = () => {
-    document.getElementById("btnLote").style.display = "none";
-  }
-}
-
 let filtroAtual = "TODOS";
 
 function formatarData(data) {
@@ -192,7 +186,6 @@ function selecionarTodos(master) {
 }
 
 async function carregarDados() {
-
   const res = await fetch(API_URL);
   const dados = await res.json();
 
@@ -237,22 +230,18 @@ async function carregarDados() {
       </td>
 
       <td>
-        <select ${modo === "view" ? "disabled" : ""}>
+        <select>
           <option value="">-</option>
           <option value="SIM" ${atrasoAtual === "SIM" ? "selected" : ""}>SIM</option>
           <option value="NAO" ${atrasoAtual === "NAO" ? "selected" : ""}>NÃO</option>
         </select>
       </td>
 
-      <td>
-        <input value="${motivoAtual}" ${modo === "view" ? "disabled" : ""}/>
-      </td>
+      <td><input value="${motivoAtual}" /></td>
 
       <td>${formatarData(dataResposta)}</td>
 
-      <td>
-        ${modo === "view" ? "-" : '<button onclick="salvar(this)">Salvar</button>'}
-      </td>
+      <td><button onclick="salvar(this)">Salvar</button></td>
     `;
 
     tbody.appendChild(tr);
@@ -311,7 +300,7 @@ async function salvarSelecionados() {
     body: JSON.stringify({ lote })
   });
 
-  alert("Lote atualizado!");
+  alert("Atualização em lote concluída!");
   carregarDados();
 }
 
